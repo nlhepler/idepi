@@ -24,16 +24,16 @@
 
 from sklearn.pipeline import FeatureUnion as FeatureUnion_
 
-from idepi.feature_extraction._msavectorizer import *
-from idepi.feature_extraction._msavectorizerpairwise import *
-from idepi.feature_extraction._msavectorizerregex import *
-from idepi.feature_extraction._msavectorizerregexpairwise import *
+from idepi.feature_extraction._sitevectorizer import *
+from idepi.feature_extraction._pairwisesitevectorizer import *
+from idepi.feature_extraction._motifvectorizer import *
+from idepi.feature_extraction._pairwisemotifvectorizer import *
 
 __all__ = ['FeatureUnion']
-__all__ += _msavectorizer.__all__
-__all__ += _msavectorizerpairwise.__all__
-__all__ += _msavectorizerregex.__all__
-__all__ += _msavectorizerregexpairwise.__all__
+__all__ += _sitevectorizer.__all__
+__all__ += _pairwisesitevectorizer.__all__
+__all__ += _motifvectorizer.__all__
+__all__ += _pairwisemotifvectorizer.__all__
 
 
 class FeatureUnion(FeatureUnion_):

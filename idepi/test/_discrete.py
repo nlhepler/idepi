@@ -13,7 +13,7 @@ from sklearn.svm import SVC
 from sklmrmr import MRMR
 
 from idepi.encoder import AminoEncoder, StanfelEncoder
-from idepi.feature_extraction import MSAVectorizer
+from idepi.feature_extraction import SiteVectorizer
 from idepi.labeledmsa import LabeledMSA
 from idepi.labeler import Labeler
 from idepi.util import (
@@ -77,7 +77,7 @@ def test_discrete(ARGS):
 
             refidx = reference_index(alignment, is_refseq)
             alignment = LabeledMSA.from_msa_with_ref(alignment, refidx)
-            extractor = MSAVectorizer(ARGS.ENCODER)
+            extractor = SiteVectorizer(ARGS.ENCODER)
             x = extractor.fit_transform(alignment)
             colnames = extractor.get_feature_names()
 

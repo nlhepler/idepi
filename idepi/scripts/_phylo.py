@@ -7,7 +7,7 @@ from sys import argv as sys_argv, exit as sys_exit
 
 from idepi.encoder import AminoEncoder
 from idepi.argument import PathType
-from idepi.feature_extraction import MSAVectorizer
+from idepi.feature_extraction import SiteVectorizer
 from idepi.phylogeny import (
     Phylo,
     PhyloGzFile
@@ -36,7 +36,7 @@ def main(args=None):
     except IndexError:
         raise RuntimeError('No reference sequence found!')
 
-    labels = MSAVectorizer(AminoEncoder).fit(msa).get_feature_names()
+    labels = SiteVectorizer(AminoEncoder).fit(msa).get_feature_names()
 
     seqrecords = [r for i, r in enumerate(msa) if not i == refidx]
 

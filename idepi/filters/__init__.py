@@ -12,6 +12,12 @@ __all__ = ['naive_filter', 'no_filter']
 
 
 def __max_min_sum(iterable):
+    """
+    return the max, min, and sum of an iterable of numbers
+
+    >>> __min_max_sum([2, 1, -1])
+    (-1, 2, 2)
+    """
     # M == max and m == min
     M = m = next(iterable, None)
     s = 0
@@ -39,6 +45,12 @@ def __naive_filter(max_conservation, min_conservation, max_gap_ratio, column):
 
 
 def naive_filter(max_conservation, min_conservation, max_gap_ratio):
+    """
+    filter an iterable by its maximum and minimum conservation, and the maximum proportion of gap characters
+
+    >>> f = naive_filter(0.2, 0.2, 0.2)
+    >>> f([
+    """
     return partial(__naive_filter, max_conservation, min_conservation, max_gap_ratio)
 
 

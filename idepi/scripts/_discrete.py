@@ -56,10 +56,10 @@ from idepi.argument import (
 from idepi.encoder import DNAEncoder
 from idepi.feature_extraction import (
     FeatureUnion,
-    MSAVectorizer,
-    MSAVectorizerPairwise,
-    MSAVectorizerRegex,
-    MSAVectorizerRegexPairwise
+    SiteVectorizer,
+    PairwiseSiteVectorizer,
+    MotifVectorizer,
+    PairwiseMotifVectorizer
     )
 from idepi.filters import naive_filter
 from idepi.labeler import (
@@ -80,6 +80,7 @@ from idepi.util import (
     )
 
 from sklearn.cross_validation import StratifiedKFold
+from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.feature_selection import RFE
 from sklearn.grid_search import GridSearchCV
 from sklearn.pipeline import Pipeline
@@ -112,6 +113,7 @@ def main(args=None):
     parser = svm_args(parser)
     parser = cv_args(parser)
 
+    parser.add_argument('--GBM', action='store_true', dest='GBM')
     parser.add_argument('ANTIBODY', type=AntibodyTypeFactory(ns.DATA), nargs='+')
 
     ARGS = parse_args(parser, args, namespace=ns)
@@ -163,23 +165,26 @@ def main(args=None):
         )
     alignment, y, threshold = ylabeler(alignment)
 
+    if ARGS.GBM:
+        y[y < 0] = 0
+
     filter = naive_filter(
         max_conservation=ARGS.MAX_CONSERVATION,
         min_conservation=ARGS.MIN_CONSERVATION,
         max_gap_ratio=ARGS.MAX_GAP_RATIO
         )
 
-    extractors = [('site_ident', MSAVectorizer(ARGS.ENCODER, filter))]
+    extractors = [('site_ident', SiteVectorizer(ARGS.ENCODER, filter))]
 
     if ARGS.RADIUS:
-        extractors.append(('pair_ident', MSAVectorizerPairwise(ARGS.ENCODER, filter, ARGS.RADIUS)))
+        extractors.append(('pair_ident', PairwiseSiteVectorizer(ARGS.ENCODER, filter, ARGS.RADIUS)))
 
     if ARGS.PNGS:
-        extractors.append(('pngs', MSAVectorizerRegex(re_pngs, 4, name='PNGS')))
+        extractors.append(('pngs', MotifVectorizer(re_pngs, 4, name='PNGS')))
 
     if ARGS.PNGS_PAIRS:
         extractors.append(
-            ('pngs_pair', MSAVectorizerRegexPairwise(re_pngs, 4, name='PNGS'))
+            ('pngs_pair', PairwiseMotifVectorizer(re_pngs, 4, name='PNGS'))
             )
 
     extractor = FeatureUnion(extractors, n_jobs=1)  # n_jobs must be 1 for now
@@ -221,7 +226,12 @@ def main(args=None):
                     estimator=svm,
                     n_features_to_select=n_features,
                     step=ARGS.RFE_STEP
-                    )
+                    ).fit(X_train, y_train)
+                selector_ = clf
+                svm_ = clf.estimator_.best_estimator_
+            elif ARGS.GBM:
+                clf = GradientBoostingClassifier(learning_rate=0.025, n_estimators=1000, max_depth=4, verbose=1)
+                clf.fit(X_train, y_train)
             else:
                 mrmr = MRMR(
                     k=n_features,
@@ -229,23 +239,29 @@ def main(args=None):
                     normalize=ARGS.MRMR_NORMALIZE,
                     similar=ARGS.SIMILAR
                     )
-                clf = Pipeline([('mrmr', mrmr), ('svm', svm)])
-
-            clf.fit(X_train, y_train)
+                clf = Pipeline([('mrmr', mrmr), ('svm', svm)]).fit(X_train, y_train)
+                selector_ = clf.named_steps['mrmr']
+                svm_ = clf.named_steps['svm'].best_estimator_
 
             X_test = X[test_idxs]
             y_true = y[test_idxs]
 
-            if ARGS.RFE:
-                selector_ = clf
-                svm_ = clf.estimator_.best_estimator_
-            else:
-                selector_ = clf.named_steps['mrmr']
-                svm_ = clf.named_steps['svm'].best_estimator_
-
             y_pred = clf.predict(X_test)
 
-            coefs, ranks = coefs_ranks(selector_.ranking_, selector_.support_, svm_.coef_)
+            # for GBM
+            if ARGS.GBM:
+                cutoff = np.mean(sorted(clf.feature_importances_, reverse=True)[n_features - 1:n_features + 1])
+                support_ = clf.feature_importances_ > cutoff
+                ranking_ = [
+                    rank for (_, rank)
+                    in sorted(
+                        ((idx, rank) for (rank, (idx, _))
+                        in enumerate(sorted(enumerate(clf.feature_importances_), key=lambda x: x[1], reverse=True), start=1)),
+                        key=lambda x: x[0])
+                    ]
+                coefs, ranks = coefs_ranks(ranking_, support_, np.zeros((1, n_features)))
+            else:
+                coefs, ranks = coefs_ranks(selector_.ranking_, selector_.support_, svm_.coef_)
 
             results_.add(y_true, y_pred, coefs, ranks)
 

@@ -7,10 +7,10 @@ from idepi.constants import GAPS
 from idepi.labeledmsa import LabeledMSA
 
 
-__all__ = ['MSAVectorizerRegexPairwise']
+__all__ = ['PairwiseMotifVectorizer']
 
 
-class MSAVectorizerRegexPairwise(BaseEstimator, TransformerMixin):
+class PairwiseMotifVectorizer(BaseEstimator, TransformerMixin):
 
     def __init__(self, regex, regex_length=-1, name=''):
         self.name = name
@@ -21,7 +21,7 @@ class MSAVectorizerRegexPairwise(BaseEstimator, TransformerMixin):
 
     def fit(self, alignment):
         if not isinstance(alignment, LabeledMSA):
-            raise ValueError("MSAVectorizers require a LabeledMSA")
+            raise ValueError("PairwiseMotifVectorizers require a LabeledMSA")
 
         calls = set()
 

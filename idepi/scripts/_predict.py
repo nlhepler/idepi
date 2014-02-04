@@ -39,6 +39,7 @@ from Bio import SeqIO
 
 from BioExt.misc import translate
 
+from idepi import MODEL_VERSION
 from idepi.argument import (
     PathType,
     init_args,
@@ -74,7 +75,7 @@ def main(args=None):
     with gzip_open(ARGS.MODEL, 'rb') as fh:
         try:
             model = pickle_load(fh)
-            if model[0] != 4:
+            if model[0] != MODEL_VERSION:
                 raise ImportError('incompatible model version')
             ARGS.ENCODER, ARGS.LABEL, hmm, extractor, clf = model[1:]
         except ImportError:

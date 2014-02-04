@@ -7,10 +7,10 @@ from idepi.filters import null_filter
 from idepi.labeledmsa import LabeledMSA
 
 
-__all__ = ['MSAVectorizerPairwise']
+__all__ = ['PairwiseSiteVectorizer']
 
 
-class MSAVectorizerPairwise(BaseEstimator, TransformerMixin):
+class PairwiseSiteVectorizer(BaseEstimator, TransformerMixin):
 
     def __init__(self, encoder, filter=null_filter, radius=0):
         if not isinstance(radius, int) or radius < 0:
@@ -24,7 +24,7 @@ class MSAVectorizerPairwise(BaseEstimator, TransformerMixin):
 
     def fit(self, alignment):
         if not isinstance(alignment, LabeledMSA):
-            raise ValueError("MSAVectorizers require a LabeledMSA")
+            raise ValueError("PairwiseSiteVectorizers require a LabeledMSA")
 
         valid_columns = [
             len(self.__filter(alignment[:, i])) > 0

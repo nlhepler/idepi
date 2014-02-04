@@ -37,7 +37,8 @@ from re import compile as re_compile, I as re_I
 import numpy as np
 
 from idepi import (
-    __version__
+    __version__,
+    MODEL_VERSION
 )
 from idepi.argument import (
     init_args,
@@ -57,10 +58,10 @@ from idepi.argument import (
 from idepi.encoder import DNAEncoder
 from idepi.feature_extraction import (
     FeatureUnion,
-    MSAVectorizer,
-    MSAVectorizerPairwise,
-    MSAVectorizerRegex,
-    MSAVectorizerRegexPairwise
+    SiteVectorizer,
+    PairwiseSiteVectorizer,
+    MotifVectorizer,
+    PairwiseMotifVectorizer
     )
 from idepi.filters import naive_filter
 from idepi.labeler import (
@@ -164,17 +165,17 @@ def main(args=None):
         max_gap_ratio=ARGS.MAX_GAP_RATIO
         )
 
-    extractors = [('site', MSAVectorizer(ARGS.ENCODER, filter))]
+    extractors = [('site', SiteVectorizer(ARGS.ENCODER, filter))]
 
     if ARGS.RADIUS:
-        extractors.append(('site_pairs', MSAVectorizerPairwise(ARGS.ENCODER, filter, ARGS.RADIUS)))
+        extractors.append(('site_pairs', PairwiseSiteVectorizer(ARGS.ENCODER, filter, ARGS.RADIUS)))
 
     if ARGS.PNGS:
-        extractors.append(('pngs', MSAVectorizerRegex(re_pngs, 4, name='PNGS')))
+        extractors.append(('pngs', MotifVectorizer(re_pngs, 4, name='PNGS')))
 
     if ARGS.PNGS_PAIRS:
         extractors.append(
-            ('pngs_pairs', MSAVectorizerRegexPairwise(re_pngs, 4, name='PNGS'))
+            ('pngs_pairs', PairwiseMotifVectorizer(re_pngs, 4, name='PNGS'))
             )
 
     extractor = FeatureUnion(extractors, n_jobs=1)  # n_jobs must be one for now
@@ -223,7 +224,7 @@ def main(args=None):
             cv=ARGS.CV_FOLDS
             ).fit(X, y).best_estimator_
 
-    pickle_dump((4, ARGS.ENCODER, ARGS.LABEL, hmm, extractor, clf), ARGS.MODEL)
+    pickle_dump((MODEL_VERSION, ARGS.ENCODER, ARGS.LABEL, hmm, extractor, clf), ARGS.MODEL)
     ARGS.MODEL.close()
 
     mrmr_ = clf.named_steps['mrmr']

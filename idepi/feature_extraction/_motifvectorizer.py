@@ -1,3 +1,12 @@
+"""
+This module provides a class to convert alignments to matrices suitable for consumption by scikit-learn
+
+>>> import re
+>>> m = MotifVectorizer(regex=re.compile(r'N[^P][TS][^P]', re.I), regex_length=4, name='PNGS')
+
+"""
+
+from __future__ import division, print_function
 
 from numpy import zeros
 
@@ -7,10 +16,10 @@ from idepi.constants import GAPS
 from idepi.labeledmsa import LabeledMSA
 
 
-__all__ = ['MSAVectorizerRegex']
+__all__ = ['MotifVectorizer']
 
 
-class MSAVectorizerRegex(BaseEstimator, TransformerMixin):
+class MotifVectorizer(BaseEstimator, TransformerMixin):
 
     def __init__(self, regex, regex_length=-1, name=''):
         self.name = name
@@ -21,7 +30,7 @@ class MSAVectorizerRegex(BaseEstimator, TransformerMixin):
 
     def fit(self, alignment):
         if not isinstance(alignment, LabeledMSA):
-            raise ValueError("MSAVectorizers require a LabeledMSA")
+            raise ValueError("MotifVectorizers require a LabeledMSA")
 
         calls = set()
 

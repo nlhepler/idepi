@@ -23,3 +23,5 @@
 #
 
 __version__ = '0.9.15'
+
+MODEL_VERSION = 5

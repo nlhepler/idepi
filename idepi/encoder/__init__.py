@@ -1,3 +1,12 @@
+"""
+This module provides encoders for transforming character alphabets into integer enumerations and vice-versa
+
+>>> e = Encoder(mode=Encoder.AMINO)
+>>> [e[i] for i in range(len(e))]
+['A', 'C', 'G', 'I', 'L', 'M', 'P', 'S', 'T', 'V', 'D', 'E', 'N', 'Q', 'F', 'W', 'Y', 'H', 'K', 'R', 'X', '[]']
+>>> [e(c) for c in 'ACGILMPSTVDENQFWYHKRX-']
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
+"""
 
 from __future__ import division, print_function
 
@@ -129,6 +138,12 @@ class Encoder:
 
     def todtype(self):
         return dtype(('b1', (len(self.__list),)))
+
+
+class IdentityEncoder(Encoder):
+
+    def __init__(self, chars):
+        super(IdentityEncoder, self).__init__(Encoder.CUSTOM, chars)
 
 
 AminoEncoder = Encoder(mode=Encoder.AMINO)

@@ -7,10 +7,10 @@ from idepi.filters import null_filter
 from idepi.labeledmsa import LabeledMSA
 
 
-__all__ = ['MSAVectorizer']
+__all__ = ['SiteVectorizer']
 
 
-class MSAVectorizer(BaseEstimator, TransformerMixin):
+class SiteVectorizer(BaseEstimator, TransformerMixin):
 
     def __init__(self, encoder, filter=null_filter):
         self.__alignment_length = 0
@@ -21,7 +21,7 @@ class MSAVectorizer(BaseEstimator, TransformerMixin):
 
     def fit(self, alignment):
         if not isinstance(alignment, LabeledMSA):
-            raise ValueError("MSAVectorizers require a LabeledMSA")
+            raise ValueError("SiteVectorizers require a LabeledMSA")
 
         column_labels = list(alignment.labels)
         vocab = {}
@@ -30,6 +30,7 @@ class MSAVectorizer(BaseEstimator, TransformerMixin):
         k = 0
         for i in range(alignment.get_alignment_length()):
             letters = self.filter(alignment[:, i])
+
             for ltr in letters:
                 try:
                     j = self.encoder(ltr)
